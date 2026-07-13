@@ -2,9 +2,11 @@
 # ZN M2 精简通用配置
 # ==============================
 
-# 代理插件
-# 暂时关闭 HomeProxy，后续加入 OpenClash
+# 代理与 DNS：OpenClash 的源码由 Scripts/Packages.sh 自动引入
 CONFIG_PACKAGE_luci-app-homeproxy=n
+CONFIG_PACKAGE_luci-app-openclash=y
+CONFIG_PACKAGE_mosdns=y
+CONFIG_PACKAGE_luci-app-mosdns=y
 
 # LuCI 基础组件
 CONFIG_PACKAGE_luci-base=y
@@ -13,9 +15,19 @@ CONFIG_PACKAGE_luci-lib-base=y
 CONFIG_PACKAGE_luci-lib-ipkg=y
 CONFIG_PACKAGE_luci-lua-runtime=y
 
-# 实用管理插件
+# 日常管理、远程维护与 DDNS
+CONFIG_PACKAGE_ttyd=y
+CONFIG_PACKAGE_luci-app-ttyd=y
+CONFIG_PACKAGE_luci-app-ddns=y
+CONFIG_PACKAGE_ddns-scripts=y
 CONFIG_PACKAGE_luci-app-autoreboot=y
 CONFIG_PACKAGE_luci-app-wolultra=y
+CONFIG_PACKAGE_luci-app-package-manager=y
+
+# WireGuard
+CONFIG_PACKAGE_kmod-wireguard=y
+CONFIG_PACKAGE_wireguard-tools=y
+CONFIG_PACKAGE_luci-proto-wireguard=y
 
 # 删除不需要的 LuCI 插件
 CONFIG_PACKAGE_luci-app-gecoosac=n
@@ -36,7 +48,6 @@ CONFIG_TARGET_ROOTFS_INITRAMFS=n
 
 # 代理和 VPN 所需内核组件
 CONFIG_PACKAGE_kmod-tun=y
-CONFIG_PACKAGE_kmod-wireguard=y
 CONFIG_PACKAGE_kmod-inet-diag=y
 CONFIG_PACKAGE_kmod-netlink-diag=y
 CONFIG_PACKAGE_kmod-nft-core=y
