@@ -18,7 +18,7 @@ on:
           - IPQ60XX-WIFI-NO
           - IPQ807X-WIFI-YES
           - IPQ807X-WIFI-NO
-          -IATEK-WIFI-YES
+          - MEDIATEK-WIFI-YES
           - MEDIATEK-WIFI-NO
           - ROCKCHIP
           - X86
