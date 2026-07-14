@@ -3,6 +3,8 @@ CONFIG_TARGET_qualcommax=y
 CONFIG_TARGET_qualcommax_ipq60xx=y
 
 #设备列表：仅编译兆能 M2
+# 仅生成兆能 M2；明确关闭源码默认的 Mango-DVK 配置
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_8devices_mango-dvk is not set
 CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_zn_m2=y
 
 #WIFI驱动：M2无无线，全部禁用
