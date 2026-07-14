@@ -174,7 +174,21 @@ jobs:
 
           $GITHUB_WORKSPACE/Scripts/Settings.sh
 
-          make defconfig -j$(nproc) && make clean -j$(nproc)
+          make defconfig -j$(nproc)
+
+          # IPQ60XX-WIFI-NO 的正式固件必须只选择兆能 M2，避免默认回退到 Mango-DVK。
+          if [[ "$WRT_CONFIG" == "IPQ60XX-WIFI-NO" ]]; then
+            grep -qx 'CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_zn_m2=y' .config || {
+              echo "ERROR: ZN M2 target was not selected after defconfig."
+              exit 1
+            }
+            if grep -qx 'CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_8devices_mango-dvk=y' .config; then
+              echo "ERROR: Mango-DVK target is selected; refusing to build the wrong device."
+              exit 1
+            fi
+          fi
+
+          make clean -j$(nproc)
 
       - name: Download Packages
         if: env.WRT_TEST != 'true'
@@ -189,6 +203,16 @@ jobs:
           cd ./wrt/
 
           make -j$(nproc) || make -j1 V=s
+
+      - name: Verify ZN M2 Firmware
+        if: env.WRT_CONFIG == 'IPQ60XX-WIFI-NO' && env.WRT_TEST != 'true'
+        run: |
+          cd ./wrt/
+          if ! find ./bin/targets/ -type f -iname '*zn_m2*' | grep -q .; then
+            echo "ERROR: Build completed without a ZN M2 image."
+            find ./bin/targets/ -type f -print
+            exit 1
+          fi
 
       - name: Machine Information
         run: |
@@ -227,6 +251,7 @@ jobs:
           fi
 
       - name: Release Firmware
+        if: env.WRT_TEST != 'true'
         uses: softprops/action-gh-release@master
         with:
           tag_name: ${{env.WRT_CONFIG}}-${{env.WRT_INFO}}-${{env.WRT_BRANCH}}-${{env.WRT_DATE}}
