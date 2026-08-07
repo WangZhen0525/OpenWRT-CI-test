@@ -285,7 +285,9 @@ jobs:
             find ./bin/targets/ -type f -exec mv -f {} ./upload/ \;
 
             if [[ "$WRT_CONFIG" == "N1" ]]; then
-              find "${PACKAGED_OUTPUTPATH:-$GITHUB_WORKSPACE/out}" -type f -iname '*s905d*.img*' -exec mv -f {} ./upload/ \;
+              N1_OUTPUT="${PACKAGED_OUTPUTPATH:-out}"
+              [[ "$N1_OUTPUT" = /* ]] || N1_OUTPUT="$GITHUB_WORKSPACE/$N1_OUTPUT"
+              find "$N1_OUTPUT" -type f -iname '*s905d*.img*' -exec mv -f {} ./upload/ \;
             fi
 
             make clean -j$(nproc)
