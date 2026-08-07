@@ -166,7 +166,8 @@ jobs:
         run: |
           cd ./wrt/
 
-          if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then
+          # AML-N1 为自包含完整配置（Amlogic 平台不套用 ZN M2 的通用精简配置），跳过 GENERAL.txt
+          if [[ "${WRT_CONFIG,,}" == *"test"* || "${WRT_CONFIG,,}" == *"n1"* ]]; then
             cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
           else
             cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config

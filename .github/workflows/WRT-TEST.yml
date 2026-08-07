@@ -22,6 +22,7 @@ on:
           - MEDIATEK-WIFI-NO
           - ROCKCHIP
           - X86
+          - AML-N1
           - TEST
       SOURCE:
         default: 'VIKINGYFY/immortalwrt'
@@ -32,6 +33,7 @@ on:
           - immortalwrt/immortalwrt
           - LiBwrt/openwrt-6.x
           - qosmio/openwrt-ipq
+          - coolsnnowolf/lede
       BRANCH:
         default: 'main'
         required: true
