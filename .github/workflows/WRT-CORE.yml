@@ -166,7 +166,7 @@ jobs:
         run: |
           cd ./wrt/
 
-          if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then
+          if [[ "${WRT_CONFIG,,}" == *"test"* || "$WRT_CONFIG" == "N1" ]]; then
             cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
           else
             cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
@@ -175,6 +175,18 @@ jobs:
           $GITHUB_WORKSPACE/Scripts/Settings.sh
 
           make defconfig -j$(nproc)
+
+          # N1 使用 armsr/armv8 通用 rootfs，之后由 ophub 打包为 S905D 启动镜像。
+          if [[ "$WRT_CONFIG" == "N1" ]]; then
+            grep -qx 'CONFIG_TARGET_armsr_armv8=y' .config || {
+              echo "ERROR: armsr/armv8 target was not selected for Feixun N1."
+              exit 1
+            }
+            grep -qx 'CONFIG_TARGET_DEVICE_armsr_armv8_DEVICE_generic=y' .config || {
+              echo "ERROR: generic armv8 profile was not selected for Feixun N1."
+              exit 1
+            }
+          fi
 
           # IPQ60XX-WIFI-NO 的正式固件必须只选择兆能 M2，避免默认回退到 Mango-DVK。
           if [[ "$WRT_CONFIG" == "IPQ60XX-WIFI-NO" ]]; then
@@ -203,6 +215,31 @@ jobs:
           cd ./wrt/
 
           make -j$(nproc) || make -j1 V=s
+
+      - name: Package Feixun N1 Firmware
+        if: env.WRT_CONFIG == 'N1' && env.WRT_TEST != 'true'
+        uses: ophub/amlogic-s9xxx-openwrt@main
+        with:
+          openwrt_path: wrt/bin/targets/armsr/armv8/*rootfs.tar.gz
+          openwrt_board: s905d
+          openwrt_kernel: 6.12.y
+          auto_kernel: true
+          openwrt_ip: 192.168.3.2
+          openwrt_size: 256/1024
+          builder_name: WangZhen0525
+
+      - name: Verify Feixun N1 Firmware
+        if: env.WRT_CONFIG == 'N1' && env.WRT_TEST != 'true'
+        run: |
+          if [[ "${PACKAGED_STATUS:-failure}" != "success" ]]; then
+            echo "ERROR: ophub packaging action did not report success."
+            exit 1
+          fi
+          if ! find "${PACKAGED_OUTPUTPATH:-out}" -type f -iname '*s905d*.img*' | grep -q .; then
+            echo "ERROR: Packaging completed without a Feixun N1/S905D image."
+            find "${PACKAGED_OUTPUTPATH:-out}" -type f -print 2>/dev/null || true
+            exit 1
+          fi
 
       - name: Verify ZN M2 Firmware
         if: env.WRT_CONFIG == 'IPQ60XX-WIFI-NO' && env.WRT_TEST != 'true'
@@ -246,6 +283,12 @@ jobs:
             done
 
             find ./bin/targets/ -type f -exec mv -f {} ./upload/ \;
+
+            if [[ "$WRT_CONFIG" == "N1" ]]; then
+              N1_OUTPUT="${PACKAGED_OUTPUTPATH:-out}"
+              [[ "$N1_OUTPUT" = /* ]] || N1_OUTPUT="$GITHUB_WORKSPACE/$N1_OUTPUT"
+              find "$N1_OUTPUT" -type f -iname '*s905d*.img*' -exec mv -f {} ./upload/ \;
+            fi
 
             make clean -j$(nproc)
           fi
